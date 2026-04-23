@@ -44,18 +44,23 @@ function displayCards(list) {
         card.className = 'card show';
         card.style.animationDelay = `${index * 0.05}s`;
 
-        // Logic: Trash for collection view, Checkmark for saved items, Plus for others
-        const iconClass = currentMode === 'mylist' ? 'fas fa-trash' : (isSaved ? 'fas fa-check' : 'fas fa-plus');
-        const btnStyle = (isSaved && currentMode !== 'mylist') ? 'background: #2ed573;' : '';
+        let iconClass = 'fa-plus';
+        let savedClass = '';
+
+        if (currentMode === 'mylist') {
+            iconClass = 'fa-trash';
+        } else if (isSaved) {
+            savedClass = 'saved';
+        }
 
         card.innerHTML = `
-            <button class="action-btn" style="${btnStyle}" onclick="handleAction(event, this, ${JSON.stringify({id, title, img, score: item.score}).replace(/"/g, '&quot;')})">
-                <i class="${iconClass}"></i>
+            <button class="action-btn ${savedClass}" onclick="handleAction(event, this, ${JSON.stringify({id, title, img, score: item.score}).replace(/"/g, '&quot;')})">
+                <i class="fas ${iconClass}"></i>
             </button>
             <img src="${img}" loading="lazy">
             <div class="card-overlay">
                 <h4>${title}</h4>
-                <div style="font-size:0.75rem; color:var(--primary); font-weight:800; margin-top:4px;">★ ${item.score || 'N/A'}</div>
+                <div style="font-size:0.7rem; color:var(--primary); font-weight:800; margin-top:4px;">★ ${item.score || 'N/A'}</div>
             </div>
         `;
         
@@ -69,14 +74,14 @@ function displayCards(list) {
 function handleAction(event, button, item) {
     event.stopPropagation();
     let list = getMyList();
+    
     if (currentMode === 'mylist') {
         list = list.filter(i => i.id !== item.id);
         button.closest('.card').remove();
     } else {
         if (!list.some(i => i.id === item.id)) {
             list.push(item);
-            button.innerHTML = '<i class="fas fa-check"></i>';
-            button.style.background = '#2ed573';
+            button.classList.add('saved');
         }
     }
     localStorage.setItem('animeHubList', JSON.stringify(list));
@@ -113,10 +118,10 @@ function openModal(item) {
     body.innerHTML = `
         <img src="${imgUrl}" class="modal-img">
         <div class="modal-info">
-            <h2 style="font-size: 2rem; margin-bottom: 10px;">${item.title_english || item.title}</h2>
+            <h2 style="font-size: 1.8rem; margin-bottom: 10px;">${item.title_english || item.title}</h2>
             <div style="color:var(--primary); font-weight:800; margin-bottom:15px;">★ ${item.score || 'N/A'} | ${type}</div>
             <p style="line-height: 1.6; color: #aaa; margin-bottom: 25px; max-height:200px; overflow-y:auto;">${item.synopsis || 'No description available.'}</p>
-            <button onclick="window.open('${redirectUrl}', '_blank')" style="background:var(--primary); color:white; border:none; padding:15px 35px; border-radius:15px; font-weight:800; cursor:pointer;">${btnText}</button>
+            <button onclick="window.open('${redirectUrl}', '_blank')">${btnText}</button>
         </div>
     `;
     modal.style.display = "block";
