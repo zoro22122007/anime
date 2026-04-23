@@ -23,10 +23,7 @@ function showToast(message) {
     toast.className = 'toast';
     toast.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
     host.appendChild(toast);
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 400);
-    }, 2500);
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 2500);
 }
 
 function showSkeletons() {
@@ -45,12 +42,17 @@ async function loadData(append = false) {
     if (!append) showSkeletons();
 
     try {
-        let url = `${JIKAN_BASE}/${currentMode}${currentMode.includes('?') ? '&' : '?'}page=${currentPage}`;
-        if (currentGenre && currentMode !== 'mylist') url += `&genres=${currentGenre}`;
+        let url;
+        // GENRE FIX: Swap to search endpoint if genre is active
+        if (currentGenre && currentMode !== 'mylist') {
+            let baseType = currentMode.includes('manga') ? 'manga' : 'anime';
+            url = `${JIKAN_BASE}/${baseType}?genres=${currentGenre}&order_by=score&sort=desc&page=${currentPage}`;
+        } else {
+            url = `${JIKAN_BASE}/${currentMode}${currentMode.includes('?') ? '&' : '?'}page=${currentPage}`;
+        }
         
         const res = await fetch(url);
         const data = await res.json();
-        
         if (!append) document.getElementById('resultsGrid').innerHTML = '';
         displayCards(data.data);
         currentPage++;
@@ -65,7 +67,7 @@ function displayCards(list) {
     list.forEach((item, index) => {
         const id = item.mal_id;
         const title = item.title_english || item.title;
-        const img = item.images?.jpg?.large_image_url;
+        const img = item.images?.jpg?.large_image_url || item.img;
         const isSaved = myIds.includes(id);
 
         const card = document.createElement('div');
@@ -86,14 +88,11 @@ function displayCards(list) {
             </div>
         `;
         
-        card.onclick = (e) => {
-            if (!e.target.closest('.action-btn')) openModal(item);
-        };
+        card.onclick = (e) => { if (!e.target.closest('.action-btn')) openModal(item); };
         grid.appendChild(card);
     });
 }
 
-// FIXED: Now saves the FULL item object so description and type are preserved
 function handleAction(event, item) {
     event.stopPropagation();
     let list = getMyList();
@@ -105,7 +104,7 @@ function handleAction(event, item) {
         showToast("Removed from Collection");
     } else {
         if (!list.some(i => i.mal_id === item.mal_id)) {
-            list.push(item);
+            list.push(item); // DATA FIX: Save full object
             btn.classList.add('saved');
             showToast("Added to Collection!");
         }
@@ -121,10 +120,11 @@ function setMode(mode, btnId) {
     document.getElementById('sectionTitle').innerText = titles[mode];
     document.getElementById('clearAllBtn').style.display = (mode === 'mylist') ? 'flex' : 'none';
     document.getElementById('genreContainer').style.display = (mode === 'mylist') ? 'none' : 'flex';
-    
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(btnId).classList.add('active');
-    
+    document.querySelectorAll('.genre-tag').forEach(t => t.classList.remove('active'));
+    document.querySelector('.genre-tag').classList.add('active');
+
     if (mode === 'mylist') {
         document.getElementById('resultsGrid').innerHTML = '';
         displayCards(getMyList());
@@ -139,16 +139,14 @@ function filterByGenre(genreId, btn) {
     loadData();
 }
 
-// FIXED: Modal now correctly identifies redirect links based on the item category
 function openModal(item) {
     const modal = document.getElementById('infoModal');
     const body = document.getElementById('modalBody');
+    const type = (item.type || '').toLowerCase();
+    const imgUrl = item.images?.jpg?.large_image_url || item.img;
     
-    const type = item.type ? item.type.toLowerCase() : '';
-    const imgUrl = item.images?.jpg?.large_image_url;
-    
-    // Determine the right platform based on type
-    let redirectUrl = 'https://anikai.to/home'; // Default Anime
+    // REDIRECT FIX: Accurate category detection
+    let redirectUrl = 'https://anikai.to/home';
     let btnText = "WATCH NOW";
 
     if (type.includes('novel')) {
@@ -164,9 +162,7 @@ function openModal(item) {
         <div class="modal-info">
             <h2 style="font-size: 1.8rem; margin-bottom: 10px;">${item.title_english || item.title}</h2>
             <div style="color:var(--primary); font-weight:800; margin-bottom:15px;">★ ${item.score || 'N/A'} | ${item.type || 'Media'}</div>
-            <p style="line-height: 1.6; color: #aaa; margin-bottom: 25px; max-height:200px; overflow-y:auto;">
-                ${item.synopsis || 'Description preserved in collection.'}
-            </p>
+            <p style="line-height: 1.6; color: #aaa; margin-bottom: 25px; max-height:200px; overflow-y:auto;">${item.synopsis || 'No description found.'}</p>
             <button onclick="window.open('${redirectUrl}', '_blank')">${btnText}</button>
         </div>
     `;
@@ -185,7 +181,6 @@ function clearFullList() {
 
 async function getRandom() {
     showSkeletons();
-    document.getElementById('sectionTitle').innerText = "Destiny Awaits...";
     try {
         const type = currentMode.includes('manga') ? 'manga' : 'anime';
         const res = await fetch(`${JIKAN_BASE}/random/${type}`);
@@ -198,10 +193,7 @@ async function getRandom() {
 document.getElementById('searchInput').addEventListener('input', (e) => {
     clearTimeout(searchTimeout);
     const query = e.target.value.trim();
-    if (!query) {
-        if(query === "") setMode(currentMode, document.querySelector('.nav-btn.active').id);
-        return;
-    }
+    if (!query) { if(query === "") setMode(currentMode, document.querySelector('.nav-btn.active').id); return; }
     searchTimeout = setTimeout(async () => {
         showSkeletons();
         let typeSearch = (currentMode.includes('manga') || currentMode.includes('novel')) ? 'manga' : 'anime';
