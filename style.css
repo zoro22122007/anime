@@ -6,7 +6,6 @@
     --glass: rgba(255, 255, 255, 0.05);
 }
 
-/* Base Setup */
 * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
 body { background: var(--bg-deep); color: #fff; font-family: 'Outfit', sans-serif; display: flex; overflow-x: hidden; }
 
@@ -14,86 +13,72 @@ body { background: var(--bg-deep); color: #fff; font-family: 'Outfit', sans-seri
 .glow-bg { position: fixed; width: 100vw; height: 100vh; background: radial-gradient(circle at 15% 15%, #1a152e 0%, #080808 60%); z-index: -2; }
 .noise-overlay { position: fixed; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.02; pointer-events: none; z-index: -1; }
 
-/* Desktop Sidebar */
-.sidebar { width: 80px; height: 100vh; position: fixed; background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(25px); border-right: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center; padding: 30px 0; z-index: 100; transition: transform 0.3s ease; }
+/* Sidebar */
+.sidebar { width: 80px; height: 100vh; position: fixed; background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(25px); border-right: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center; padding: 30px 0; z-index: 100; }
 .logo { font-size: 1.8rem; font-weight: 800; margin-bottom: 40px; cursor: pointer; }
 .logo span { color: var(--primary); }
 .nav-links-vertical { display: flex; flex-direction: column; gap: 20px; }
-.nav-btn { width: 54px; height: 54px; border-radius: 18px; border: none; background: transparent; color: #555; font-size: 1.2rem; cursor: pointer; transition: 0.3s ease; }
+.nav-btn { width: 54px; height: 54px; border-radius: 18px; border: none; background: transparent; color: #555; font-size: 1.2rem; cursor: pointer; transition: 0.3s; }
 .nav-btn:hover, .nav-btn.active { background: var(--primary); color: white; box-shadow: 0 10px 20px var(--primary-glow); transform: scale(1.1); }
 .nav-divider { width: 30px; height: 1px; background: rgba(255,255,255,0.1); margin: 10px 0; }
 
-/* Main Content */
-.main-content { margin-left: 80px; width: calc(100% - 80px); padding: 40px 5%; transition: margin 0.3s ease; }
+/* Layout */
+.main-content { margin-left: 80px; width: calc(100% - 80px); padding: 40px 5%; }
 .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 50px; }
 .search-wrapper { background: var(--glass); padding: 14px 25px; border-radius: 20px; display: flex; align-items: center; width: 450px; border: 1px solid rgba(255,255,255,0.08); transition: 0.4s; }
 .search-wrapper:focus-within { border-color: var(--primary); box-shadow: 0 0 40px var(--primary-glow); }
 .search-wrapper input { background: transparent; border: none; color: white; margin-left: 15px; width: 100%; font-size: 1rem; }
 
-/* Grid & Layout */
-.results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 35px; padding-top: 40px; }
+.clear-btn { background: rgba(255, 71, 87, 0.15); color: #ff4757; border: 1px solid rgba(255, 71, 87, 0.3); padding: 12px 25px; border-radius: 15px; cursor: pointer; font-weight: 700; transition: 0.3s; display: flex; align-items: center; gap: 10px; }
+.clear-btn:hover { background: #ff4757; color: white; }
+
 .hero-header h1 { font-size: 3.5rem; font-weight: 800; letter-spacing: -2px; }
 .accent-line { width: 60px; height: 5px; background: var(--primary); border-radius: 10px; margin-top: 10px; }
 
-/* --- CARD HOVER LOGIC (Desktop Standard) --- */
-.card { 
-    background: var(--card-bg); border-radius: 24px; overflow: hidden; position: relative; 
-    transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.03); 
-    opacity: 0; transform: translateY(30px); cursor: pointer;
-}
+/* Grid & Cards */
+.results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 35px; padding-top: 40px; }
+.card { background: var(--card-bg); border-radius: 24px; overflow: hidden; position: relative; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.03); opacity: 0; transform: translateY(30px); }
 .card.show { animation: slideUp 0.8s ease forwards; }
-.card img { width: 100%; height: 320px; object-fit: cover; transition: 0.6s ease; }
+.card img { width: 100%; height: 320px; object-fit: cover; transition: 0.6s; }
 
-.action-btn { 
-    position: absolute; top: 15px; right: 15px; width: 40px; height: 40px; 
-    border-radius: 50%; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); 
-    border: 1px solid rgba(255,255,255,0.1); color: white; opacity: 0; /* Hidden */
-    transition: 0.3s ease; z-index: 5; 
-}
+.action-btn { position: absolute; top: 15px; right: 15px; width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); color: white; opacity: 0; transition: 0.3s; cursor: pointer; z-index: 5; }
+.card-overlay { position: absolute; bottom: 0; width: 100%; padding: 25px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); opacity: 0; transition: 0.4s; transform: translateY(10px); }
 
-.card-overlay { 
-    position: absolute; bottom: 0; width: 100%; padding: 25px 20px; 
-    background: linear-gradient(transparent, rgba(0,0,0,0.95)); 
-    opacity: 0; /* Hidden */
-    transition: 0.4s ease; transform: translateY(10px);
-}
-
-/* THE HOVER TRIGGER (Desktop Only) */
+/* Desktop Hover */
 @media (min-width: 769px) {
-    .card:hover { transform: translateY(-10px); border-color: var(--primary); box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
+    .card:hover { transform: translateY(-10px); border-color: var(--primary); }
     .card:hover img { filter: brightness(0.5); transform: scale(1.05); }
     .card:hover .action-btn { opacity: 1; }
     .card:hover .card-overlay { opacity: 1; transform: translateY(0); }
 }
 
-/* --- MOBILE SPECIFIC RULES --- */
+/* Modal */
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); }
+.modal-content { background: #0f0f0f; margin: 5% auto; padding: 40px; width: 85%; max-width: 900px; border-radius: 30px; border: 1px solid var(--primary); position: relative; animation: modalPop 0.4s; }
+.modal-flex { display: flex; gap: 40px; align-items: flex-start; }
+.modal-img { width: 280px; border-radius: 20px; }
+.close-modal { position: absolute; top: 20px; right: 25px; font-size: 30px; cursor: pointer; color: #666; }
+
+@keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+@keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* --- MOBILE LOGIC --- */
 @media (max-width: 768px) {
-    /* 1. Force UI to be visible without hover */
     .card-overlay { opacity: 1; transform: translateY(0); background: linear-gradient(transparent, rgba(0,0,0,0.9) 70%); padding: 15px 12px; }
     .action-btn { opacity: 1; background: var(--primary); width: 36px; height: 36px; top: 10px; right: 10px; }
     .card-overlay h4 { font-size: 0.85rem; }
 
-    /* 2. Responsive Layout */
-    .sidebar { width: 100%; height: 70px; bottom: 0; top: auto; left: 0; flex-direction: row; padding: 0; border-radius: 20px 20px 0 0; border-right: none; border-top: 1px solid rgba(255,255,255,0.1); justify-content: center; }
+    .modal-content { width: 92%; padding: 25px 15px; margin: 15% auto; }
+    .modal-flex { flex-direction: column; align-items: center; text-align: center; gap: 20px; }
+    .modal-img { width: 160px; }
+    .modal-info button { width: 100%; max-width: 280px; margin: 0 auto; display: block; }
+
+    .clear-btn { background: #ff4757 !important; color: white !important; width: 100%; justify-content: center; margin-top: 10px; }
+
+    .sidebar { width: 100%; height: 70px; bottom: 0; top: auto; left: 0; flex-direction: row; padding: 0; border-radius: 20px 20px 0 0; border-top: 1px solid rgba(255,255,255,0.1); justify-content: center; }
     .logo { display: none; }
     .nav-links-vertical { flex-direction: row; width: 100%; justify-content: space-around; }
-    .nav-btn { width: 46px; height: 46px; font-size: 1.1rem; }
-    .nav-divider { display: none; }
-
+    .nav-btn { width: 48px; height: 48px; }
     .main-content { margin-left: 0; width: 100%; padding: 20px 4% 100px 4%; }
-    .top-nav { flex-direction: column; gap: 15px; }
-    .search-wrapper { width: 100%; }
-    .hero-header h1 { font-size: 2.2rem; text-align: center; }
     .results-grid { gap: 12px; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); }
 }
-
-/* Modals */
-.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); }
-.modal-content { background: #0f0f0f; margin: 5% auto; padding: 40px; width: 85%; max-width: 900px; border-radius: 30px; border: 1px solid var(--primary); position: relative; animation: modalPop 0.4s ease; }
-.modal-flex { display: flex; gap: 40px; align-items: flex-start; }
-.modal-img { width: 280px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-.close-modal { position: absolute; top: 20px; right: 25px; font-size: 30px; cursor: pointer; color: #666; transition: 0.3s; }
-.close-modal:hover { color: #fff; }
-
-@keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
-@keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }

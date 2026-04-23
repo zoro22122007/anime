@@ -44,9 +44,13 @@ function displayCards(list) {
         card.className = 'card show';
         card.style.animationDelay = `${index * 0.05}s`;
 
+        // Logic: Trash for collection view, Checkmark for saved items, Plus for others
+        const iconClass = currentMode === 'mylist' ? 'fas fa-trash' : (isSaved ? 'fas fa-check' : 'fas fa-plus');
+        const btnStyle = (isSaved && currentMode !== 'mylist') ? 'background: #2ed573;' : '';
+
         card.innerHTML = `
-            <button class="action-btn" onclick="handleAction(event, this, ${JSON.stringify({id, title, img, score: item.score}).replace(/"/g, '&quot;')})">
-                <i class="${currentMode === 'mylist' ? 'fas fa-trash' : (isSaved ? 'fas fa-check' : 'fas fa-plus')}"></i>
+            <button class="action-btn" style="${btnStyle}" onclick="handleAction(event, this, ${JSON.stringify({id, title, img, score: item.score}).replace(/"/g, '&quot;')})">
+                <i class="${iconClass}"></i>
             </button>
             <img src="${img}" loading="lazy">
             <div class="card-overlay">
@@ -98,6 +102,7 @@ function openModal(item) {
     const modal = document.getElementById('infoModal');
     const body = document.getElementById('modalBody');
     const type = item.type || '';
+    const imgUrl = item.images?.jpg?.large_image_url || item.img;
     const redirectUrl = (currentMode.includes('novel') || type.includes('Novel')) ? 'https://ranobes.top/' : 
                         (currentMode.includes('manga')) ? 'https://mangafire.to/home' : 'https://anikai.to/home';
 
@@ -106,7 +111,7 @@ function openModal(item) {
     else if (currentMode.includes('manga')) btnText = "READ MANGA";
 
     body.innerHTML = `
-        <img src="${item.images.jpg.large_image_url}" class="modal-img">
+        <img src="${imgUrl}" class="modal-img">
         <div class="modal-info">
             <h2 style="font-size: 2rem; margin-bottom: 10px;">${item.title_english || item.title}</h2>
             <div style="color:var(--primary); font-weight:800; margin-bottom:15px;">★ ${item.score || 'N/A'} | ${type}</div>
