@@ -3,6 +3,7 @@ let currentPage = 1;
 let currentMode = 'top/anime';
 let isLoading = false;
 let searchTimeout;
+let currentGenre = null;
 
 const titles = {
     'top/anime': 'Global Rated Anime',
@@ -16,13 +17,40 @@ window.onload = () => loadData();
 
 function getMyList() { return JSON.parse(localStorage.getItem('animeHubList')) || []; }
 
+function showToast(message) {
+    const host = document.getElementById('notificationHost');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+    host.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 400);
+    }, 2500);
+}
+
+function showSkeletons() {
+    const grid = document.getElementById('resultsGrid');
+    grid.innerHTML = '';
+    for(let i=0; i<10; i++) {
+        const skel = document.createElement('div');
+        skel.className = 'skeleton';
+        grid.appendChild(skel);
+    }
+}
+
 async function loadData(append = false) {
     if (isLoading) return;
     isLoading = true;
+    if (!append) showSkeletons();
+
     try {
-        const url = `${JIKAN_BASE}/${currentMode}${currentMode.includes('?') ? '&' : '?'}page=${currentPage}`;
+        let url = `${JIKAN_BASE}/${currentMode}${currentMode.includes('?') ? '&' : '?'}page=${currentPage}`;
+        if (currentGenre && currentMode !== 'mylist') url += `&genres=${currentGenre}`;
+        
         const res = await fetch(url);
         const data = await res.json();
+        
         if (!append) document.getElementById('resultsGrid').innerHTML = '';
         displayCards(data.data);
         currentPage++;
@@ -44,14 +72,8 @@ function displayCards(list) {
         card.className = 'card show';
         card.style.animationDelay = `${index * 0.05}s`;
 
-        let iconClass = 'fa-plus';
-        let savedClass = '';
-
-        if (currentMode === 'mylist') {
-            iconClass = 'fa-trash';
-        } else if (isSaved) {
-            savedClass = 'saved';
-        }
+        let iconClass = currentMode === 'mylist' ? 'fa-trash' : 'fa-plus';
+        let savedClass = (isSaved && currentMode !== 'mylist') ? 'saved' : '';
 
         card.innerHTML = `
             <button class="action-btn ${savedClass}" onclick="handleAction(event, this, ${JSON.stringify({id, title, img, score: item.score}).replace(/"/g, '&quot;')})">
@@ -78,10 +100,12 @@ function handleAction(event, button, item) {
     if (currentMode === 'mylist') {
         list = list.filter(i => i.id !== item.id);
         button.closest('.card').remove();
+        showToast("Removed from Collection");
     } else {
         if (!list.some(i => i.id === item.id)) {
             list.push(item);
             button.classList.add('saved');
+            showToast("Added to Collection!");
         }
     }
     localStorage.setItem('animeHubList', JSON.stringify(list));
@@ -91,8 +115,12 @@ function setMode(mode, btnId) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     currentMode = mode;
     currentPage = 1;
+    currentGenre = null;
     document.getElementById('sectionTitle').innerText = titles[mode];
+    
+    // Toggle UI Elements
     document.getElementById('clearAllBtn').style.display = (mode === 'mylist') ? 'flex' : 'none';
+    document.getElementById('genreContainer').style.display = (mode === 'mylist') ? 'none' : 'flex';
     
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(btnId).classList.add('active');
@@ -103,6 +131,14 @@ function setMode(mode, btnId) {
     } else { loadData(); }
 }
 
+function filterByGenre(genreId, btn) {
+    currentGenre = genreId;
+    currentPage = 1;
+    document.querySelectorAll('.genre-tag').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    loadData();
+}
+
 function openModal(item) {
     const modal = document.getElementById('infoModal');
     const body = document.getElementById('modalBody');
@@ -111,9 +147,8 @@ function openModal(item) {
     const redirectUrl = (currentMode.includes('novel') || type.includes('Novel')) ? 'https://ranobes.top/' : 
                         (currentMode.includes('manga')) ? 'https://mangafire.to/home' : 'https://anikai.to/home';
 
-    let btnText = "WATCH NOW";
-    if (currentMode.includes('novel') || type.includes('Novel')) btnText = "READ NOVEL";
-    else if (currentMode.includes('manga')) btnText = "READ MANGA";
+    let btnText = (currentMode.includes('novel') || type.includes('Novel')) ? "READ NOVEL" : 
+                 (currentMode.includes('manga')) ? "READ MANGA" : "WATCH NOW";
 
     body.innerHTML = `
         <img src="${imgUrl}" class="modal-img">
@@ -133,16 +168,18 @@ function clearFullList() {
     if(confirm("Wipe entire collection?")) {
         localStorage.setItem('animeHubList', '[]');
         document.getElementById('resultsGrid').innerHTML = '';
+        showToast("Collection cleared");
     }
 }
 
 async function getRandom() {
-    document.getElementById('resultsGrid').innerHTML = '';
+    showSkeletons();
     document.getElementById('sectionTitle').innerText = "Destiny Awaits...";
     try {
         const type = currentMode.includes('manga') ? 'manga' : 'anime';
         const res = await fetch(`${JIKAN_BASE}/random/${type}`);
         const data = await res.json();
+        document.getElementById('resultsGrid').innerHTML = '';
         displayCards([data.data]);
     } catch (e) { console.error(e); }
 }
@@ -155,6 +192,7 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
         return;
     }
     searchTimeout = setTimeout(async () => {
+        showSkeletons();
         let typeSearch = (currentMode.includes('manga') || currentMode.includes('novel')) ? 'manga' : 'anime';
         const res = await fetch(`${JIKAN_BASE}/${typeSearch}?q=${query}`);
         const data = await res.json();

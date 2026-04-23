@@ -11,6 +11,7 @@
 <body>
     <div class="glow-bg"></div>
     <div class="noise-overlay"></div>
+    <div id="notificationHost"></div>
 
     <div id="infoModal" class="modal" onclick="if(event.target == this) closeModal()">
         <div class="modal-content">
@@ -34,7 +35,7 @@
 
     <div class="main-content">
         <header class="top-nav">
-            <div class="search-wrapper">
+            <div class="search-wrapper" id="searchWrapper">
                 <i class="fas fa-search"></i>
                 <input type="text" id="searchInput" placeholder="Search across titles..." autocomplete="off">
             </div>
@@ -46,6 +47,17 @@
         <section class="hero-header">
             <h1 id="sectionTitle">Global Top Rated</h1>
             <div class="accent-line"></div>
+            
+            <div class="genre-container" id="genreContainer">
+                <button class="genre-tag active" onclick="filterByGenre(null, this)">All</button>
+                <button class="genre-tag" onclick="filterByGenre(1, this)">Action</button>
+                <button class="genre-tag" onclick="filterByGenre(2, this)">Adventure</button>
+                <button class="genre-tag" onclick="filterByGenre(4, this)">Comedy</button>
+                <button class="genre-tag" onclick="filterByGenre(8, this)">Drama</button>
+                <button class="genre-tag" onclick="filterByGenre(10, this)">Fantasy</button>
+                <button class="genre-tag" onclick="filterByGenre(22, this)">Romance</button>
+                <button class="genre-tag" onclick="filterByGenre(24, this)">Sci-Fi</button>
+            </div>
         </section>
 
         <main class="results-grid" id="resultsGrid"></main>
