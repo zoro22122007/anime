@@ -43,7 +43,6 @@ async function loadData(append = false) {
 
     try {
         let url;
-        // GENRE FIX: Swap to search endpoint if genre is active
         if (currentGenre && currentMode !== 'mylist') {
             let baseType = currentMode.includes('manga') ? 'manga' : 'anime';
             url = `${JIKAN_BASE}/${baseType}?genres=${currentGenre}&order_by=score&sort=desc&page=${currentPage}`;
@@ -87,7 +86,6 @@ function displayCards(list) {
                 <div style="font-size:0.7rem; color:var(--primary); font-weight:800; margin-top:4px;">★ ${item.score || 'N/A'}</div>
             </div>
         `;
-        
         card.onclick = (e) => { if (!e.target.closest('.action-btn')) openModal(item); };
         grid.appendChild(card);
     });
@@ -104,7 +102,7 @@ function handleAction(event, item) {
         showToast("Removed from Collection");
     } else {
         if (!list.some(i => i.mal_id === item.mal_id)) {
-            list.push(item); // DATA FIX: Save full object
+            list.push(item);
             btn.classList.add('saved');
             showToast("Added to Collection!");
         }
@@ -122,8 +120,6 @@ function setMode(mode, btnId) {
     document.getElementById('genreContainer').style.display = (mode === 'mylist') ? 'none' : 'flex';
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(btnId).classList.add('active');
-    document.querySelectorAll('.genre-tag').forEach(t => t.classList.remove('active'));
-    document.querySelector('.genre-tag').classList.add('active');
 
     if (mode === 'mylist') {
         document.getElementById('resultsGrid').innerHTML = '';
@@ -145,7 +141,6 @@ function openModal(item) {
     const type = (item.type || '').toLowerCase();
     const imgUrl = item.images?.jpg?.large_image_url || item.img;
     
-    // REDIRECT FIX: Accurate category detection
     let redirectUrl = 'https://anikai.to/home';
     let btnText = "WATCH NOW";
 
@@ -162,7 +157,7 @@ function openModal(item) {
         <div class="modal-info">
             <h2 style="font-size: 1.8rem; margin-bottom: 10px;">${item.title_english || item.title}</h2>
             <div style="color:var(--primary); font-weight:800; margin-bottom:15px;">★ ${item.score || 'N/A'} | ${item.type || 'Media'}</div>
-            <p style="line-height: 1.6; color: #aaa; margin-bottom: 25px; max-height:200px; overflow-y:auto;">${item.synopsis || 'No description found.'}</p>
+            <p style="line-height: 1.6; color: #aaa; margin-bottom: 25px; max-height:200px; overflow-y:auto;">${item.synopsis || 'No description available.'}</p>
             <button onclick="window.open('${redirectUrl}', '_blank')">${btnText}</button>
         </div>
     `;
