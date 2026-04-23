@@ -50,8 +50,8 @@ function displayCards(list) {
             </button>
             <img src="${img}" loading="lazy">
             <div class="card-overlay">
-                <h4 style="margin-bottom:5px;">${title}</h4>
-                <div style="font-size:0.8rem; color:var(--primary); font-weight:700;">★ ${item.score || 'N/A'}</div>
+                <h4>${title}</h4>
+                <div style="font-size:0.75rem; color:var(--primary); font-weight:800; margin-top:4px;">★ ${item.score || 'N/A'}</div>
             </div>
         `;
         
@@ -108,10 +108,10 @@ function openModal(item) {
     body.innerHTML = `
         <img src="${item.images.jpg.large_image_url}" class="modal-img">
         <div class="modal-info">
-            <h2 style="font-size: 2.2rem; margin-bottom: 12px; letter-spacing:-1px;">${item.title_english || item.title}</h2>
-            <div style="color:var(--primary); font-weight:800; margin-bottom:20px; font-size:1.1rem;">★ ${item.score || 'N/A'} | ${type}</div>
-            <p style="line-height: 1.8; color: #aaa; margin-bottom: 35px; max-height:220px; overflow-y:auto;">${item.synopsis || 'No description available.'}</p>
-            <button onclick="window.open('${redirectUrl}', '_blank')" style="background:var(--primary); color:white; border:none; padding:18px 45px; border-radius:18px; font-weight:800; cursor:pointer; text-transform:uppercase; box-shadow: 0 10px 20px var(--primary-glow);">${btnText}</button>
+            <h2 style="font-size: 2rem; margin-bottom: 10px;">${item.title_english || item.title}</h2>
+            <div style="color:var(--primary); font-weight:800; margin-bottom:15px;">★ ${item.score || 'N/A'} | ${type}</div>
+            <p style="line-height: 1.6; color: #aaa; margin-bottom: 25px; max-height:200px; overflow-y:auto;">${item.synopsis || 'No description available.'}</p>
+            <button onclick="window.open('${redirectUrl}', '_blank')" style="background:var(--primary); color:white; border:none; padding:15px 35px; border-radius:15px; font-weight:800; cursor:pointer;">${btnText}</button>
         </div>
     `;
     modal.style.display = "block";
@@ -120,7 +120,7 @@ function openModal(item) {
 function closeModal() { document.getElementById('infoModal').style.display = "none"; }
 
 function clearFullList() {
-    if(confirm("Are you sure you want to wipe your entire collection?")) {
+    if(confirm("Wipe entire collection?")) {
         localStorage.setItem('animeHubList', '[]');
         document.getElementById('resultsGrid').innerHTML = '';
     }
@@ -128,7 +128,7 @@ function clearFullList() {
 
 async function getRandom() {
     document.getElementById('resultsGrid').innerHTML = '';
-    document.getElementById('sectionTitle').innerText = "Rolling Destiny...";
+    document.getElementById('sectionTitle').innerText = "Destiny Awaits...";
     try {
         const type = currentMode.includes('manga') ? 'manga' : 'anime';
         const res = await fetch(`${JIKAN_BASE}/random/${type}`);
