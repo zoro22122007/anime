@@ -60,12 +60,12 @@ async function loadData(append = false) {
 
 function displayCards(list) {
     const grid = document.getElementById('resultsGrid');
-    const myIds = getMyList().map(i => i.id);
+    const myIds = getMyList().map(i => i.mal_id);
 
     list.forEach((item, index) => {
-        const id = item.mal_id || item.id;
+        const id = item.mal_id;
         const title = item.title_english || item.title;
-        const img = item.images?.jpg?.large_image_url || item.img;
+        const img = item.images?.jpg?.large_image_url;
         const isSaved = myIds.includes(id);
 
         const card = document.createElement('div');
@@ -76,7 +76,7 @@ function displayCards(list) {
         let savedClass = (isSaved && currentMode !== 'mylist') ? 'saved' : '';
 
         card.innerHTML = `
-            <button class="action-btn ${savedClass}" onclick="handleAction(event, this, ${JSON.stringify({id, title, img, score: item.score}).replace(/"/g, '&quot;')})">
+            <button class="action-btn ${savedClass}" onclick="handleAction(event, ${JSON.stringify(item).replace(/"/g, '&quot;')})">
                 <i class="fas ${iconClass}"></i>
             </button>
             <img src="${img}" loading="lazy">
@@ -93,18 +93,20 @@ function displayCards(list) {
     });
 }
 
-function handleAction(event, button, item) {
+// FIXED: Now saves the FULL item object so description and type are preserved
+function handleAction(event, item) {
     event.stopPropagation();
     let list = getMyList();
+    const btn = event.currentTarget;
     
     if (currentMode === 'mylist') {
-        list = list.filter(i => i.id !== item.id);
-        button.closest('.card').remove();
+        list = list.filter(i => i.mal_id !== item.mal_id);
+        btn.closest('.card').remove();
         showToast("Removed from Collection");
     } else {
-        if (!list.some(i => i.id === item.id)) {
+        if (!list.some(i => i.mal_id === item.mal_id)) {
             list.push(item);
-            button.classList.add('saved');
+            btn.classList.add('saved');
             showToast("Added to Collection!");
         }
     }
@@ -117,8 +119,6 @@ function setMode(mode, btnId) {
     currentPage = 1;
     currentGenre = null;
     document.getElementById('sectionTitle').innerText = titles[mode];
-    
-    // Toggle UI Elements
     document.getElementById('clearAllBtn').style.display = (mode === 'mylist') ? 'flex' : 'none';
     document.getElementById('genreContainer').style.display = (mode === 'mylist') ? 'none' : 'flex';
     
@@ -139,23 +139,34 @@ function filterByGenre(genreId, btn) {
     loadData();
 }
 
+// FIXED: Modal now correctly identifies redirect links based on the item category
 function openModal(item) {
     const modal = document.getElementById('infoModal');
     const body = document.getElementById('modalBody');
-    const type = item.type || '';
-    const imgUrl = item.images?.jpg?.large_image_url || item.img;
-    const redirectUrl = (currentMode.includes('novel') || type.includes('Novel')) ? 'https://ranobes.top/' : 
-                        (currentMode.includes('manga')) ? 'https://mangafire.to/home' : 'https://anikai.to/home';
+    
+    const type = item.type ? item.type.toLowerCase() : '';
+    const imgUrl = item.images?.jpg?.large_image_url;
+    
+    // Determine the right platform based on type
+    let redirectUrl = 'https://anikai.to/home'; // Default Anime
+    let btnText = "WATCH NOW";
 
-    let btnText = (currentMode.includes('novel') || type.includes('Novel')) ? "READ NOVEL" : 
-                 (currentMode.includes('manga')) ? "READ MANGA" : "WATCH NOW";
+    if (type.includes('novel')) {
+        redirectUrl = 'https://ranobes.top/';
+        btnText = "READ NOVEL";
+    } else if (type.includes('manga') || type.includes('manhwa')) {
+        redirectUrl = 'https://mangafire.to/home';
+        btnText = "READ MANGA";
+    }
 
     body.innerHTML = `
         <img src="${imgUrl}" class="modal-img">
         <div class="modal-info">
             <h2 style="font-size: 1.8rem; margin-bottom: 10px;">${item.title_english || item.title}</h2>
-            <div style="color:var(--primary); font-weight:800; margin-bottom:15px;">★ ${item.score || 'N/A'} | ${type}</div>
-            <p style="line-height: 1.6; color: #aaa; margin-bottom: 25px; max-height:200px; overflow-y:auto;">${item.synopsis || 'No description available.'}</p>
+            <div style="color:var(--primary); font-weight:800; margin-bottom:15px;">★ ${item.score || 'N/A'} | ${item.type || 'Media'}</div>
+            <p style="line-height: 1.6; color: #aaa; margin-bottom: 25px; max-height:200px; overflow-y:auto;">
+                ${item.synopsis || 'Description preserved in collection.'}
+            </p>
             <button onclick="window.open('${redirectUrl}', '_blank')">${btnText}</button>
         </div>
     `;
